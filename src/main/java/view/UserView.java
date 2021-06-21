@@ -8,12 +8,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
-public class UserView {
+public class UserView implements IView {
 
     private final JFrame MAIN_WINDOW = new JFrame("Переименовыватель");
-    private JLabel status;
+    private JLabel pathStatus;
+    private JProgressBar progressBar;
+    private JTextArea logTextArea;
 
     private String path = null;
+    private String pattern = null;
 
     private boolean includeSubFolderNames;
     private boolean includeSubFolderFileNames;
@@ -39,11 +42,12 @@ public class UserView {
     }
 
     private void drawStatusLabel() {
-        status = new JLabel();
-        status.setBounds(10, 10, 580, 20);
-        status.setText("Путь не выбран!");
-        status.setForeground(Color.RED);
-        MAIN_WINDOW.add(status);
+        pathStatus = new JLabel();
+        pathStatus.setBounds(10, 10, 580, 20);
+        pathStatus.setText("Путь не выбран!");
+        pathStatus.setForeground(Color.RED);
+
+        MAIN_WINDOW.add(pathStatus);
     }
 
     private void drawDialogButton() {
@@ -55,15 +59,17 @@ public class UserView {
         dialogButton.addActionListener(e -> {
             showFolderChooser();
             if (path == null) {
-                status.setText("Выберете путь!");
-                status.setForeground(Color.RED);
+                pathStatus.setText("Выберете путь!");
+                pathStatus.setForeground(Color.RED);
             } else {
                 controller.setPath(path);
-                status.setText("Путь: " + path);
-                status.setForeground(Color.BLACK);
+                updateLogTextArea("Путь - " + path);
+                pathStatus.setText("Путь: " + path);
+                pathStatus.setForeground(Color.BLACK);
                 renameButtonEnabled = true;
             }
         });
+
         MAIN_WINDOW.add(dialogButton);
 
     }
@@ -77,6 +83,7 @@ public class UserView {
 
         renameButton.addActionListener(l -> {
             if (renameButtonEnabled) {
+                controller.setPattern(pattern);
                 controller.rename(includeSubFolderNames, includeSubFolderFileNames);
             }
         });
@@ -97,13 +104,45 @@ public class UserView {
             @Override
             public void keyReleased(KeyEvent e) {
                 super.keyReleased(e);
-                String pattern;
                 pattern = patternInputField.getText();
-                controller.setPattern(pattern);
             }
         });
 
         MAIN_WINDOW.add(patternInputField);
+
+    }
+
+    private void showFolderChooser() {
+        final WindowsFolderBrowser folderBrowser = new WindowsFolderBrowser();
+        final File dir = folderBrowser.showDialog(MAIN_WINDOW);
+
+        if (dir != null) {
+            path = dir.getPath();
+        }
+    }
+
+    private void drawProgressBar() {
+
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setBounds(-1, 536, 600,25);
+        progressBar.setStringPainted(true);
+        progressBar.setValue(0);
+        progressBar.setBorder(null);
+
+        MAIN_WINDOW.add(progressBar);
+
+    }
+
+    private void drawLogTextArea() {
+
+        logTextArea = new JTextArea();
+
+        JScrollPane scrollPane = new JScrollPane(logTextArea);
+        scrollPane.setBounds(-1, 348, 600, 190);
+
+        logTextArea.setFocusable(false);
+
+        MAIN_WINDOW.add(scrollPane);
 
     }
 
@@ -124,28 +163,41 @@ public class UserView {
         MAIN_WINDOW.setBackground(Color.GRAY);
         MAIN_WINDOW.setLayout(null);
         MAIN_WINDOW.setVisible(true);
+
+        JOptionPane.showMessageDialog(MAIN_WINDOW, "<html>Для использования программы, " +
+                "<b>Вам</b> нужно уметь пользоваться <font color=red>RegEX</font></html>",
+                "Предупреждение", JOptionPane.WARNING_MESSAGE);
+
         MAIN_WINDOW.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     }
 
-    private void showFolderChooser() {
-        final WindowsFolderBrowser folderBrowser = new WindowsFolderBrowser();
-        final File dir = folderBrowser.showDialog(MAIN_WINDOW);
-
-        if (dir != null) {
-            path = dir.getPath();
-        }
-    }
-
+    @Override
     public void init() {
 
+        drawProgressBar();
         drawStateCheckBoxes();
         drawStatusLabel();
         drawDialogButton();
         drawRenameButton();
         drawPatternInputField();
+        drawLogTextArea();
         drawMainWindow();
 
     }
 
+    @Override
+    public void updateProgressBarText(String text) {
+        progressBar.setString(text);
+    }
+
+    @Override
+    public void updateProgressBarValue(int value) {
+        progressBar.setValue(value);
+    }
+
+    @Override
+    public void updateLogTextArea(String text) {
+        logTextArea.append(text + "\n");
+    }
 }

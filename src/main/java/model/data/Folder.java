@@ -1,4 +1,4 @@
-package model;
+package model.data;
 
 import com.google.common.io.Files;
 import lombok.Getter;
@@ -49,7 +49,6 @@ public class Folder implements RenameInterface {
         this.folder = folder;
         this.name = folderName;
     }
-
 
     @Override
     public boolean renameTo(String name) {

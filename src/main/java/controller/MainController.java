@@ -16,12 +16,10 @@ public class MainController {
 
     public void setPath(String path) {
         renamer.setPath(path);
-        System.out.println(path);
     }
 
     public void setPattern(String pattern) {
         renamer.setPattern(pattern);
-        System.out.println(pattern);
     }
 
 
